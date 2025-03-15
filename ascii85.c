@@ -24,8 +24,10 @@
 
 #include "ascii85.h"
 
-#include <stdint.h>
+#include <assert.h>
+#include <limits.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 // From Wikipedia re: Ascii85 length...
 // Adobe adopted the basic btoa encoding, but with slight changes, and gave it the name Ascii85.
@@ -54,7 +56,18 @@
 
 static const uint8_t base_char = 33u; // '!' -- note that (85 + 33) < 128
 
-static const int32_t ascii85_in_length_max = 65536;
+// NOTE: with `ascii85_decode_z_for_zero` enabled, the largest output length is
+// given by
+// ```c
+// out_length = in_length * 4;
+//
+// ```
+// The constant below contains the largest input length which results in an
+// output length less than or equal to INT_MAX.
+static const int32_t ascii85_in_length_max = 536870911;
+static_assert(INT_MAX == 2147483647,
+              "Signed integers aren't 32 bits wide, breaking assumptions about "
+              "input and output length");
 
 static const bool ascii85_decode_z_for_zero  = true;
 static const bool ascii85_encode_z_for_zero  = true;
